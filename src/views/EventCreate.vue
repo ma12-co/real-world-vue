@@ -59,7 +59,7 @@ export default {
     return {
       times,
       categories: this.$store.state.categories,
-      event: this.createFreshEventObject
+      event: this.createFreshEventObject()
     }
   },
   components: {
@@ -67,11 +67,21 @@ export default {
   },
   methods: {
     createEvent() {
-      this.$store.dispatch('createEvent', this.event)
+      this.$store
+        .dispatch('createEvent', this.event)
+        .then(() => {
+          this.$router.push({
+            name: 'event-show',
+            params: { id: this.event.id }
+          })
+          this.event = this.createFreshEventObject()
+        })
+        .catch(e => console.log('There was an error:' + e))
     },
     createFreshEventObject() {
       const user = this.$store.state.user.user
       const id = Math.floor(Math.random() * 10000000)
+
       return {
         id: id,
         user: user,

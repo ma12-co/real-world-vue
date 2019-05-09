@@ -35,10 +35,11 @@ export default new Vuex.Store({
   },
   actions: {
     createEvent({ commit }, event) {
-      EventService.postEvent(event).catch(e =>
-        console.log('there was an error' + e)
-      )
-      commit('ADD_EVENT', event)
+      return EventService.postEvent(event)
+        .then(() => {
+          commit('ADD_EVENT', event)
+        })
+        .catch(e => console.log('there was an error' + e))
     }
   },
   getters: {
