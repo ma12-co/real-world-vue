@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import EventService from './services/EventService'
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -15,22 +16,25 @@ export default new Vuex.Store({
       'food',
       'community'
     ],
-    todos: [
-      { id: 1, text: '...', done: true },
-      { id: 2, text: '...', done: false },
-      { id: 3, text: '...', done: true },
-      { id: 4, text: '...', done: false }
-    ],
-    events: [
-      { id: 1, title: '...', organizer: '...' },
-      { id: 2, title: '...', organizer: '...' },
-      { id: 3, title: '...', organizer: '...' },
-      { id: 4, title: '...', organizer: '...' }
-    ]
+
+    events: [],
+    numberOfPages: 0,
+    event: {}
   },
   mutations: {
     ADD_EVENT(state, event) {
       state.events.push(event)
+    },
+    SET_EVENTS(state, events) {
+      state.events = events
+    },
+    SET_NUMBEROFPAGES(state, eventsNum) {
+      state.numberOfPages = Math.ceil(parseInt(eventsNum) / 3)
+
+      console.log(state.numberOfPages)
+    },
+    SET_EVENT(state, event) {
+      state.event = event
     }
   },
   actions: {
@@ -40,6 +44,32 @@ export default new Vuex.Store({
           commit('ADD_EVENT', event)
         })
         .catch(e => console.log('there was an error' + e))
+    },
+
+    fetchEvents({ commit }, { perPage, page }) {
+      EventService.getEvents(perPage, page)
+        .then(response => {
+          commit('SET_NUMBEROFPAGES', response.headers['x-total-count'])
+
+          commit('SET_EVENTS', response.data)
+        })
+        .catch(e => {
+          console.log('there was an error: ' + e)
+        })
+    },
+    fetchEvent({ commit, getters }, id) {
+      let event = getters.getEventByID(id)
+      if (event) {
+        commit('SET_EVENT', event)
+      } else {
+        EventService.getEvent(id)
+          .then(response => {
+            commit('SET_EVENT', response.data)
+          })
+          .catch(error => {
+            console.log('there was an error:' + error.response)
+          })
+      }
     }
   },
   getters: {
